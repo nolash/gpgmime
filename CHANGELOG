@@ -1,0 +1,4 @@
+- 0.0.1
+	* Handle .gpg and .asc message format input (as file)
+	* Output application/encrypted email format
+	* Provide to, from and subject as arguments

@@ -3,6 +3,10 @@ name = "gpgmime"
 version = "0.0.1"
 edition = "2021"
 authors = ["Louis Holbrook <dev@holbrook.no> (https://holbrook.no)"]
+license = "GPL-3.0-or-later"
+description = "Create multipart/encrypted email from PGP message"
+repository = "https://git.defalsify.org/gpgmime"
+categories = ["command-line-utilities", "email"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 

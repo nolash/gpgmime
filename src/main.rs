@@ -1,8 +1,4 @@
 use std::io::Write;
-use std::io::Read;
-use std::fs::read;
-use std::env::args;
-use std::path::Path;
 
 use sequoia_openpgp::parse::Parse;
 use sequoia_openpgp::Message;
@@ -13,7 +9,6 @@ use mail_builder::MessageBuilder;
 use mail_builder::mime::MimePart;
 use clap::App;
 use clap::Arg;
-use clap::ArgMatches;
 
 struct Settings {
     to: String,
@@ -74,7 +69,7 @@ fn main() {
         let msg = Message::from_file(settings.path).unwrap();
 
         let mut msg_w = ArmorWriter::new(Vec::new(), Kind::Message).unwrap();
-        msg_w.write_all(msg.to_vec().unwrap().as_ref());
+        let _c = msg_w.write_all(msg.to_vec().unwrap().as_ref());
         let msg_b = msg_w.finalize().unwrap();
         let msg_s = String::from_utf8_lossy(&msg_b);
 
