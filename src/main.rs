@@ -1,3 +1,88 @@
+#![crate_name = "gpgmime"]
+
+//! gpgme creates multipart/encrypted emails from PGP messages.
+//!
+//! This multipart/encrypted structure can be successfully parsed 
+//! and decrypted inline by my favorite MUA, [mutt](http://mutt.org).
+//!
+//! Checking that it works - or getting it to work - with more PGP
+//! capable MUAs wouldn't hurt.
+//!
+//! 
+//! ## Compatibility
+//!
+//! The tool parses both `.gpg` and `.asc` as input.
+//!
+//!
+//! ## Example
+//!
+//! Let the follwing be the *ciphertext* stored in a file `msg.asc`
+//!
+//! ``` ignore,
+//! -----BEGIN PGP MESSAGE-----
+//!
+//! hQGMA1IUfpa99cfFAQv/YrkKsUAo+jlSj3u+pSTcx+eNtCRgv3LHUUV1O3BpDMGp
+//! tJYQrq+tRqhT29jnEZdJ+engC/gUHZYGOCburWFIKkStH1G4x5V4AWICtDcozPpK
+//! ENIihA3kncbMsJrFcpgX4wmqA6c28ao9fzEGPcGWvA1jUV4g6qukQ2lOYgbmK2O6
+//! wD5omaKLBguNVW6/PcTQ32kP4sGKwzS5B9R1X0FY7e3HJxMy0lnOpNQRY+g5AJZ0
+//! ryncq+PPUYmjULCtr/BPm8idX2TBStx+1iqlvYQiW5x3tQIocWARWqILtNeYdHZF
+//! a1CRSekj1bw4o5RzkJq92a9XqyiKlqna7X+W6E+59ZvoVUM3KgzCQ0MJkv1yQCo1
+//! VX9kLoQ1ia658rsDg0YCZUyJ/kvD3z5gcLEL9/WRhlhbwfeUa6pkUUtk3TbAjqdb
+//! GTj7wJDMUdA+Uuo5U5gglEL+Fl7wjDa4GnfTudtcfG0ImAoW433DstVp4Z7Qk2cW
+//! uAprBVHHJSR+fNjszWhU0j8BxgsH/FeK87rbCgPvzZ1xWan4kdCfZXWrAt6ZV90U
+//! Ic3i1AcP/R4tZ5oOxpLBXjkuXaOxI7YQ7LLI25t/Udo=
+//! =YHyf
+//! -----END PGP MESSAGE-----
+//! ```
+//! 
+//! An example command and output is:
+//!
+//! ```
+//! From: "foo@bar.com" <foo@bar.com>
+//! To: "merman@greyskull.com" <merman@greyskull.com>
+//! Subject: Skeletor is looking a bit pale
+//! Message-ID: <171d5d0aa79de7cf.2c1958e5681b1f5f.1dc0ff8081f726a3@piano>
+//! Date: Wed, 12 Oct 2022 15:48:57 +0000
+//! Content-Type: multipart/encrypted; protocol="application/pgp-encrypted"; 
+//!         boundary="171d5d0aa79eef5a_ca50d29ee7659b74_1dc0ff8081f726a3"
+//! Content-Disposition: inline
+//!
+//!
+//! --171d5d0aa79eef5a_ca50d29ee7659b74_1dc0ff8081f726a3
+//! Content-Type: application/pgp-encrypted
+//! Content-Transfer-Encoding: base64
+//!
+//! VmVyc2lvbjogMQ==
+//!
+//! --171d5d0aa79eef5a_ca50d29ee7659b74_1dc0ff8081f726a3
+//! Content-Type: application/octet-stream; charset="utf-8"
+//! Content-Transfer-Encoding: 7bit
+//!
+//! -----BEGIN PGP MESSAGE-----
+//!
+//! wcDMA1IUfpa99cfFAQv/ReJTs3mkbFYI9ifay1jhL1XW5u9cDMFTymdxMtWUhJvl
+//! AM5AgWPSnwfVVaS9Ger2robtLsR5UeAjNSOGXg8Vpu7SsbQGsDXdScCgvwEmSPPU
+//! atJ+qdw/wPKR2GTD41hypJDsIeoT9l9lfSIBgzXdu+PNrryLFzqpI+q8y3KMOjTG
+//! W52lvulIhYrFgRzhhOaX8Ss3Wnx7j1+4KXsvk0VY+rTdM0krsmEgzXHfHGECgKga
+//! zlYQ3c4OhpnsmYi0+rpzCqbBrbtxDdMuBif7nbzYettcrkQssRuS41mFHHYuJWu4
+//! A8fkoFmjlz5NVEXZSdsnMyPV6lSE9IcllUuFzKXPAGBy3xNay7JdcPU/1C7iylOh
+//! M9mrfoe1gpPRefwXrjkiVuJ/uhYwgCxcIdzmgJ7XBtoBvZzNt440pP+bZqCGJgPt
+//! HlmBvtGY5F6uopRC1e+PH7a+vIYss5rmJ4OQGdvWRgj2RDPo9cIfAsU6sFP530T6
+//! ErzvOCXiYDv+9IPy7LzG0j8BGdQeIVYbHWRYxc3aQhlfSDvR6WYMWAnmXNZYUiEW
+//! QS34XWww8FHxBGWnj8DbVXuvVYdjeiSteTdDmC4fsUY=
+//! =dhci
+//! -----END PGP MESSAGE-----
+//!
+//! --171d5d0aa79eef5a_ca50d29ee7659b74_1dc0ff8081f726a3--
+//!
+//! ```
+//!
+//!
+//! ## Shortcomings
+//!
+//! - The application/pgp-encrypted field will contain `Version: 1`
+//! no matter the version of the message.
+
 use std::io::Write;
 
 use sequoia_openpgp::parse::Parse;
@@ -63,6 +148,7 @@ impl Settings {
 }
 
 
+#[doc(hidden)]
 fn main() {
         let settings = Settings::from_args();
 
